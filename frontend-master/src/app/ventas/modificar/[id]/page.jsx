@@ -1,39 +1,132 @@
 "use client";
+import { useState } from "react";
+import axios from "axios";
+
 export default function Modificar({ params }) {
     const venta = JSON.parse(decodeURIComponent(params.id));
+
+    const [cantidad, setCantidad] = useState(venta.cantidad);
+    const [producto, setProducto] = useState(venta.nombreProducto || "");
+    const [usuario, setUsuario] = useState(venta.nombreUsuario || "");
+    const [productosSugeridos, setProductosSugeridos] = useState([]);
+    const [usuariosSugeridos, setUsuariosSugeridos] = useState([]);
+    const [productoSeleccionado, setProductoSeleccionado] = useState({ id: venta.id_producto, nombre: venta.nombreProducto });
+    const [usuarioSeleccionado, setUsuarioSeleccionado] = useState({ id: venta.id_usuario, nombre: venta.nombreUsuario });
 
     const modificarVenta = async (e) => {
         e.preventDefault();
 
         const data = {
             id: venta.id,
-            cantidad: document.getElementById("cantidad").value
+            cantidad,
+            id_producto: productoSeleccionado.id,
+            id_usuario: usuarioSeleccionado.id,
         };
 
         const url = "http://localhost:3000/ventas/modificarVenta";
 
-        await fetch(url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(data),
-        });
+        await axios.post(url, data);
         location.replace("http://localhost:3001/ventas/mostrar");
     };
 
+    const obtenerSugerenciasProducto = async (nombre) => {
+        setProducto(nombre);
+
+        if (nombre.length >= 2) {
+            try {
+                const response = await axios.get(`http://localhost:3000/ventas/sugerirProducto?producto=${nombre}`);
+                setProductosSugeridos(response.data);
+            } catch (error) {
+                console.error("Error al obtener productos sugeridos:", error);
+            }
+        } else {
+            setProductosSugeridos([]);
+        }
+    };
+
+    const obtenerSugerenciasUsuario = async (nombre) => {
+        setUsuario(nombre);
+
+        if (nombre.length >= 2) {
+            try {
+                const response = await axios.get(`http://localhost:3000/ventas/sugerirUsuario?nombre=${nombre}`);
+                setUsuariosSugeridos(response.data);
+            } catch (error) {
+                console.error("Error al obtener usuarios sugeridos:", error);
+            }
+        } else {
+            setUsuariosSugeridos([]);
+        }
+    };
+
+    const seleccionarProducto = (id, nombre) => {
+        setProductoSeleccionado({ id, nombre });
+        setProducto(nombre);
+        setProductosSugeridos([]);
+    };
+
+    const seleccionarUsuario = (id, nombre) => {
+        setUsuarioSeleccionado({ id, nombre });
+        setUsuario(nombre);
+        setUsuariosSugeridos([]);
+    };
+
     return (
-        <div style={{ display: 'flex', justifyContent: 'center', minHeight: '100vh', backgroundColor: '#fff' }}> {/* Fondo blanco */}
-            <form style={{ width: '40%', marginTop: '5%', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)' }} onSubmit={modificarVenta}>
-                <div style={{ backgroundColor: '#001f36', color: '#fff', padding: '15px', borderTopLeftRadius: '8px', borderTopRightRadius: '8px' }}>
-                    <h1 style={{ textAlign: 'center' }}>Modificar Venta</h1>
-                </div>
-                <div style={{ padding: '20px' }}>
-                    <input id="id" defaultValue={venta.id} type="text" style={inputStyle} className="d-none" />
-                    <input id="cantidad" defaultValue={venta.cantidad} type="text" style={inputStyle} placeholder="Cantidad" />
-                </div>
-                <div style={{ padding: '15px' }}>
-                    <button type="submit" style={buttonStyle}>Guardar cambios</button>
+        <div className="m-0 row justify-content-center">
+            <form className="col-6 mt-5" onSubmit={modificarVenta}>
+                <div className="card" style={cardStyle}>
+                    <div className="card-header" style={headerStyle}>
+                        <h1 style={{ color: "#fff" }}>Modificar Venta</h1>
+                    </div>
+                    <div className="card-body">
+                        <input
+                            id="cantidad"
+                            value={cantidad}
+                            onChange={(e) => setCantidad(e.target.value)}
+                            type="text"
+                            style={inputStyle}
+                            placeholder="Cantidad"
+                        />
+                        <input
+                            id="producto"
+                            value={producto}
+                            onChange={(e) => obtenerSugerenciasProducto(e.target.value)}
+                            type="text"
+                            style={inputStyle}
+                            placeholder="Producto"
+                        />
+                        {productosSugeridos.length > 0 && (
+                            <ul>
+                                {productosSugeridos.map((prod) => (
+                                    <li key={prod.id} onClick={() => seleccionarProducto(prod.id, prod.producto)}>
+                                        {prod.producto}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        <input
+                            id="usuario"
+                            value={usuario}
+                            onChange={(e) => obtenerSugerenciasUsuario(e.target.value)}
+                            type="text"
+                            style={inputStyle}
+                            placeholder="Usuario"
+                        />
+                        {usuariosSugeridos.length > 0 && (
+                            <ul>
+                                {usuariosSugeridos.map((usr) => (
+                                    <li key={usr.id} onClick={() => seleccionarUsuario(usr.id, usr.nombre)}>
+                                        {usr.nombre}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                    <div className="card-footer">
+                        <button type="submit" style={buttonStyle}>
+                            Guardar cambios
+                        </button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -41,21 +134,35 @@ export default function Modificar({ params }) {
 }
 
 // Estilos
+const cardStyle = {
+    border: "1px solid #ccc",
+    borderRadius: "5px",
+    boxShadow: "0 0 10px rgba(0, 0, 0, 0.1)",
+    backgroundColor: "#f8f9fa",  // light background
+};
+
+const headerStyle = {
+    backgroundColor: "#28a745",  // green background
+    padding: "10px",
+    textAlign: "center",
+};
+
 const inputStyle = {
-    width: '100%',
-    padding: '10px',
-    marginBottom: '15px',
-    border: '1px solid #ccc',
-    borderRadius: '5px',
+    width: "100%",
+    padding: "10px",
+    marginBottom: "10px",
+    borderRadius: "5px",
+    border: "1px solid #ccc",
+    fontSize: "16px",
 };
 
 const buttonStyle = {
-    width: '100%',
-    padding: '10px',
-    backgroundColor: '#001f36', // Color oscuro
-    color: '#fff',
-    border: 'none',
-    borderRadius: '5px',
-    cursor: 'pointer',
-    fontSize: '16px',
+    width: "100%",
+    padding: "10px",
+    backgroundColor: "#28a745",  // green button color
+    color: "#fff",
+    border: "none",
+    borderRadius: "5px",
+    cursor: "pointer",
+    fontSize: "16px",
 };

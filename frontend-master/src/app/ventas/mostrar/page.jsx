@@ -9,12 +9,14 @@ async function getVentas() {
 }
 
 export default async function Ventas() {
+    const ventas = await getVentas();
+
     const tabEncabezado = {
         padding: '10px',
         border: '1px solid #ccc',
         textAlign: 'left',
         fontWeight: 'bold',
-        backgroundColor: '#001f36', // Color oscuro para encabezados
+        backgroundColor: '#007bff', // Azul
         color: '#fff'
     };
 
@@ -23,7 +25,6 @@ export default async function Ventas() {
         border: '1px solid #ccc',
     };
 
-    const ventas = await getVentas();
     return (
         <>
             <h1 style={{ textAlign: 'center', color: '#333' }}>Ventas</h1>
@@ -34,8 +35,8 @@ export default async function Ventas() {
                         <th style={tabEncabezado}>Cantidad</th>
                         <th style={tabEncabezado}>Estado</th>
                         <th style={tabEncabezado}>Fecha/Hora</th>
-                        <th style={tabEncabezado}>Id Producto</th>
-                        <th style={tabEncabezado}>Id Usuario</th>
+                        <th style={tabEncabezado}>Producto</th>
+                        <th style={tabEncabezado}>Usuario</th>
                         <th style={tabEncabezado}>Acciones</th>
                     </tr>
                 </thead>
@@ -46,8 +47,8 @@ export default async function Ventas() {
                             <td style={tabstyle2}>{venta.cantidad}</td>
                             <td style={tabstyle2}>{venta.estado}</td>
                             <td style={tabstyle2}>{venta.fechayhora}</td>
-                            <td style={tabstyle2}>{venta.id_producto}</td>
-                            <td style={tabstyle2}>{venta.id_usuario}</td>
+                            <td style={tabstyle2}>{venta.nombreProducto}</td>
+                            <td style={tabstyle2}>{venta.nombreUsuario}</td>
                             <td style={tabstyle2}>
                                 <BorrarVenta id={venta.id} />
                                 <> / </>
@@ -66,10 +67,9 @@ export default async function Ventas() {
     );
 }
 
-// Estilos para el botón de nueva venta
 const newButtonStyle = {
     padding: '10px 20px',
-    backgroundColor: '#001f36', // Color oscuro
+    backgroundColor: '#28a745', // Verde
     color: '#fff',
     textDecoration: 'none',
     borderRadius: '5px',
